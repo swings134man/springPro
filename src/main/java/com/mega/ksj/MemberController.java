@@ -21,7 +21,7 @@ public class MemberController {
 		int result = service.joinS(memberDTO);
 		//리턴 받는부분
 		if (result == 1) {
-			return "redirect:index.jsp";
+			return "redirect:login.jsp";
 		}else {
 			return "error";
 		}

@@ -22,13 +22,14 @@ if (sId != null){
 	<h2>환영합니다!</h2>
 <%} %>
 	<hr>
-	<form action="login.member">
-		ID : <input type="text" name="id" id="id"> <br>
-		PW : <input type="text" name="pw" id="pw"> <br>
-	<button>로그인</button> <br>
-	</form>
+	
+	<%if(sId.equals("")) { %>
+		<a href="login.jsp">로그인</a>
+	<%}else { %>
 	<a href="logout.member"><button>로그아웃</button> </a>
+	<%} %>	
 	<hr>
 	<a href="member_join.jsp">회원가입</a>
+	<a href="bbs.main">게시판으로 이동</a>
 </body>
 </html>

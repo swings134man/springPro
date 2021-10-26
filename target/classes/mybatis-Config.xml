@@ -5,8 +5,10 @@
 <configuration>
    <typeAliases>
       <typeAlias type="com.mega.ksj.DTO.MemberDTO" alias="memberDTO"></typeAlias>
+      <typeAlias type="com.mega.ksj.DTO.BbsDTO" alias="bbsDTO"></typeAlias>
    </typeAliases>
    <mappers>
       <mapper resource="mapper/memberMapper.xml" />
+      <mapper resource="mapper/bbsMapper.xml" />
    </mappers>
 </configuration>
