@@ -9,17 +9,17 @@
 </head>
 <body>
 	<!-- 반복문 통해서 list 출력 -->
-	<table>
-		<th>게시물 번호</th>
-		<th>제목</th>
-		<th>작성자</th>
-		<th>조회수</th>
+	<table border="1">
+		<th width="80">게시물 번호</th>
+		<th width="300">제목</th>
+		<th width="80">작성자</th>
+		<th width="50">조회수</th>
 			<bbsList:forEach items="${list}" var="board">
 					<tr>
-						<td>${board.postid} </td>
-						<td><a href="#">${board.title}</a></td>
-						<td>${board.writer} </td>
-						<td>${board.view} </td>
+						<td align="center">${board.postid} </td>
+						<td align="center"><a href="#">${board.title}</a></td>
+						<td align="center">${board.writer} </td>
+						<td align="center">${board.view} </td>
 					</tr>
 					
 					
