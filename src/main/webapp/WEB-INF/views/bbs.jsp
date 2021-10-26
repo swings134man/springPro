@@ -21,10 +21,6 @@
 						<td align="center">${board.writer} </td>
 						<td align="center">${board.view} </td>
 					</tr>
-					
-					
-					
-		
 			</bbsList:forEach>
 	</table>
 

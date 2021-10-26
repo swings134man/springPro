@@ -21,7 +21,7 @@ public class BbsController {
 	public String create(BbsDTO bbsDTO) {
 		int result = service.createS(bbsDTO);
 		if (result == 1) {
-			return "redirect:bbs.jsp";
+			return "redirect:bbs.main";
 		}else {
 			return "error";
 		}//else

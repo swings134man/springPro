@@ -30,17 +30,15 @@ public class BbsService {
 	
 	public List<BbsDTO> bbsListS(BbsDTO bbsDTO) {
 		List<BbsDTO> list = dao.bbsListD(bbsDTO);
-		System.out.println(list.get(0));
 		
 		// 스택 class
-//		StackBbs stack = new StackBbs(list);
 		StackBbs s = new StackBbs();
 		Stack<BbsDTO> dto = s.StackBbs(list);
 		
 		System.out.println("출력!!" + dto);
 		
 		return dto;
-	} // main list end
+	} // Service main list up end
 	
 	
 	
