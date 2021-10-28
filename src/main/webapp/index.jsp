@@ -31,5 +31,7 @@ if (sId != null){
 	<hr>
 	<a href="member_join.jsp">회원가입</a>
 	<a href="bbs.main">게시판으로 이동</a>
+		
+	
 </body>
 </html>
