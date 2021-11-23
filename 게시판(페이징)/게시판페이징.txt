@@ -1,0 +1,262 @@
+스프링 게시판 페이징
+
+페이지 메이커
+package com.fly.pro2.DTO;
+
+import org.springframework.web.util.UriComponents;
+import org.springframework.web.util.UriComponentsBuilder;
+
+public class PageMaker {
+
+	private int totalCount; // 게시물의 총 갯수
+	private int startPage; // 현재 페이지의 시작 번호(1 , 11 , 21)
+	private int endPage; // 현재 페이지의 끝 번호 (10 , 20 , 30)
+	private boolean prev; // 이전 페이지로 이동 링크 
+	private boolean next; // 다음 페이지로 이동하는 링크 존재 여부
+	
+	// 한번에 보여줄 페이지 번호는 10 페이지씩
+	private int displayPageNum = 10;
+	
+	//Criteria 클래스에 정의해둔 page , perPageNum
+	private Criteria cri;
+
+	
+	public void setCri(Criteria cri) {
+		this.cri = cri;
+	}
+
+	public void setTotalCount(int totalCount) {
+		this.totalCount = totalCount;
+		// 아래에서 정의한 계산식이 있는 메서드이다
+		// setTotalCount는 게시물의 총 문의글의 개수이기 때문에
+		// 게시물 총 갯수로 시작, 끝, 다음, 이전 페이지를 계산해준다
+	   calcData();
+	}
+
+	public int getTotalCount() {
+		return totalCount;
+	}
+
+	public int getStartPage() {
+		return startPage;
+	}
+
+	public int getEndPage() {
+		return endPage;
+	}
+
+	public boolean isPrev() {
+		return prev;
+	}
+
+	public boolean isNext() {
+		return next;
+	}
+
+	public int getDisplayPageNum() {
+		return displayPageNum;
+	}
+
+	public Criteria getCri() {
+		return cri;
+	}
+
+	private void calcData() { //첫페이지, 마지막 페이지 , 이전 목록 , 다음 목록을 계산하는 함수를 만들어준다
+		// 끝페이지 계산
+		// Math.ceil은 입력된 값을 올림처리 하는 함수이다
+		//  10  	==						3		10.0 = 0.3 올림처리 1.0 	*	10
+		endPage = (int) (Math.ceil(cri.getPage() / (double) displayPageNum) * displayPageNum);
+		// 시작 페이지 계산
+		// 	1	  =   10     - 10 (화면에 출력할 페이징 갯수) 0 + 1 
+		startPage = (endPage - displayPageNum) + 1;
+		//끝 페이지가 맞는지 확인
+		//              =         게시물 갯수 : 	72    /   10  getPerPageNum == 
+		//        8     =  Math.ceil(7.2)               	  Criteria 클래스에 정의한 한 페이지에 보여줄 문의글 갯수 
+		int tempEndPage = (int) (Math.ceil(totalCount / (double) cri.getPerPageNum()));
+		System.out.println(totalCount);
+		System.out.println(Math.ceil(totalCount / (double) cri.getPerPageNum()));
+		//   10     >   8  true이면
+		if (endPage > tempEndPage) {
+		//  end 페이지가 더 크다면 tempEndPage(끝페이지 계산)값을 endPage에 대입
+			endPage = tempEndPage;
+			//endPage = 8
+		}
+		
+		// 이전 페이지가 있는지
+		// 1 == 1   이면 false가 반환된다
+		// 이전 이라는 링크를 생성하지 않음
+		//          20   == 1   이면 true가 반환된다
+		prev = startPage == 1 ? false : true;
+		// 다음 페이지를 넣어야 할지 계산
+		// 	    8     *      10       80   >=   72(총 문의글 수) false
+		// 마지막 페이지와 한페이지에 read해올 문의글 갯수를 곱한 수가 총 문의글과 비교했을 때
+		// 크거나 같으면 false로   다음 목록으로 넘어가는 페이지(링크)를 만들지 않음
+		next = endPage * cri.getPerPageNum() >= totalCount ? false : true;
+	} 
+	
+	
+	// 리스트 페이지에서 단일 게시글 클릭하면 해당 page정보를 가지고
+	// page, perPageNum 파라메터를 포함한 URI 문자열을 만들어서 조회페이지로 이동한다
+	// 조회 페이지에서 page, perPageNum, QNO값을 유지하고 있기 때문에
+	//다시 리스트 페지로 이동할때 원래 페이지로 이동한다
+	public String makeQuery(int page) {
+		UriComponents uriComponents = UriComponentsBuilder.newInstance()
+				.queryParam("page", page)
+				.queryParam("perPageNum", 
+				cri.getPerPageNum())
+				.build();
+		return uriComponents.toUriString();
+	}
+
+}
+————————————————————————————————————————————————————————————————————————
+크리테리아
+package com.fly.pro2.DTO;
+
+public class Criteria {
+	// Criteria 클래스는 rownumber에 제한값, 페이지에 출력되는 게시물 숫자를 제한한다
+
+	// 페이징 처리할때 페이지 넘버를 지정하는 변수
+	private int page;
+	// 한 페이지에 몇개정도씩 read 해올지 표시 해주는 변수
+	private int perPageNum;
+	// select 쿼리에서 사용될 시작값으로 사용될 변수
+	private int rowStart;
+	// select 쿼리에서 사용될 끝값으로 사용될 변수
+	private int rowEnd;
+
+	public Criteria() {
+		// 기본 생성자로 변수의 디폴트값을 넣어줌
+		// 처음 게시판을 들어갔을때 1페이지가 보여야 하기 때문에 1
+		this.page = 1;
+		// 한 페이지당 10개씩 출력 해주기 위해 10
+		this.perPageNum = 10;
+	}
+
+	public void setPage(int page) {
+		if (page <= 0) {
+			// 페이지가 1보다 작은 수로 입력이되면 무조건 1로 리턴한다
+			this.page = 1;
+			return;
+		}
+		this.page = page;
+	}
+
+	public void setPerPageNum(int perPageNum) {
+	// 너무 많은 작거나 많은 수를 한 페이지에 read 불가하게 설정해준다
+		if (perPageNum <= 0 || perPageNum > 100) {
+			// perPageNum 변수에 10을 넣고 리턴
+			this.perPageNum = 10;
+			return;
+		}
+		this.perPageNum = perPageNum;
+	}
+
+	public int getPage() {
+		return page;
+	}
+
+	public int getPerPageNum() {
+		return this.perPageNum;
+	}
+
+	public int getRowStart() {
+		// 게시글 10개중에 시작점을 잡아줄 변수
+		// ex) (5 - 1 5page) 4 * 10 + 1 = 5페이지는 41
+		rowStart = ((page - 1) * perPageNum) + 1;
+		return rowStart;
+	}
+
+	public int getRowEnd() {
+		// 게시글 10개중에 끝지점을 잡아줄 변수
+		// ex) 40 ~ 50 > 10 + 9
+		rowEnd = rowStart + perPageNum - 1;
+		return rowEnd;
+	}
+
+	@Override
+	public String toString() {
+		return "Criteria [page=" + page + ", perPageNum=" + perPageNum + ", rowStart=" + rowStart + ", rowEnd=" + rowEnd
+				+ "]";
+	}
+
+}
+
+————————————————————————————————————————————————————————————————————————————————
+View 코드 
+
+<div align="center">
+	<!— jstl if를 사용해서 조건문을 사용하자 if는 단일 조건일때 사용함 —>
+	<!— 컨트롤러에서 모델에 등록한 pageMaker를 view에 출력한다 —>
+  <questionList:if test="${pageMaker.prev}">
+  <!— makeQuery 메서드는 동적으로 url을 만들어주는 메서드이다 —>
+   <a href="questionList${pageMaker.makeQuery(pageMaker.startPage - 1)}">이전</a>
+  </questionList:if> 
+  
+	<!— 시작 페이지와 끝나는 페이지를 조건으로 forEach를 사용하여 반복문을 돌린다 —>
+	<!— idx는 forEach 안에서 사용될 변수이다 —>	  
+  <questionList:forEach begin="${pageMaker.startPage}" end="${pageMaker.endPage}" var="idx">
+  <!— 
+  makeQuery 메서드는 동적으로 url을 스트링으로 만들어주는 메서드이다
+  page가 파라메터로 makeQuery에 들어가서 page가 바뀐다. 
+  perPageNum은 페이징 처리될 문의글 갯수이다
+  questionList?page=2&perPageNum=10 
+  페이징 처리 되서 생기는 숫자마다 url로 링크해서 이동 가능하게 만든다. —>
+   <a href="questionList${pageMaker.makeQuery(idx)}">${idx}</a>
+  </questionList:forEach>
+    
+  <questionList:if test="${pageMaker.next && pageMaker.endPage > 0}">
+ 	<!— if 조건에 맞을 경우 끝 페이지보다 + 1 해서 다음 이라는 단어를 생성하고 makeQuery를 사용하여 링크한다 —>
+   <a href="questionList${pageMaker.makeQuery(pageMaker.endPage + 1)}">다음</a>
+  </questionList:if>
+  </div>
+
+——————————————————————————————————————————————————————————————————————————————
+* 답글이랑 페이징 합친 쿼라ㅣ
+SELECT LPAD(' ',5*(LEVEL-1))||QTITLE QTITLE, QNO, QTITLE, QCONTENT, QID, QDATE, VIEWCOUNT,FK_SEQ 
+FROM ( 
+	SELECT QNO, QTITLE, QCONTENT, QID, QDATE, VIEWCOUNT,FK_SEQ 
+	FROM QUESTION) 
+	WHERE QNO BETWEEN 300 AND 387
+	START WITH FK_SEQ = 0
+	CONNECT BY PRIOR QNO = FK_SEQ
+	ORDER SIBLINGS BY FK_SEQ DESC
+
+* 페이징 쿼리
+SELECT QNO, QTITLE, QCONTENT, QID, QDATE, VIEWCOUNT 
+FROM ( 
+	SELECT QNO, QTITLE, QCONTENT, QID, QDATE, VIEWCOUNT, ROW_NUMBER()
+	OVER(ORDER BY QNO DESC) AS RNUM
+	FROM QUESTION) QUESTION  WHERE RNUM BETWEEN 1 AND  10
+	ORDER BY QNO DESC
+
+* 답글 쿼리
+
+SELECT LPAD(' ',5*(LEVEL-1))||QTITLE QTITLE, QNO, QDATE, FK_SEQ, LEVEL FROM QUESTION q 
+START WITH FK_SEQ = 0 
+CONNECT BY PRIOR QNO = FK_SEQ 
+ORDER SIBLINGS BY FK_SEQ ASC
+
+* 답글 , 페이징 10개 씩 출력 쿼리
+SELECT LPAD(' ', 5*(LEVEL-1))||QTITLE QTITLE, QNO, QCONTENT, QID, QDATE, VIEWCOUNT, FK_SEQ 
+		FROM(
+			SELECT QNO, QTITLE, QCONTENT, QID, QDATE, FK_SEQ, VIEWCOUNT,ROW_NUMBER()
+			OVER(ORDER BY QNO DESC) AS RNUM FROM QUESTION)
+			QUESTION WHERE RNUM BETWEEN #{rowStart} AND #{rowEnd}
+			START WITH FK_SEQ = 0
+			CONNECT BY PRIOR QNO = FK_SEQ
+			ORDER SIBLINGS BY QNO DESC
+
+* 시퀀스 쿼리
+CREATE SEQUENCE QUESTION_NUM4 START WITH 1 INCREMENT BY 1 MAXVALUE 500 CYCLE NOCACHE;
+
+-> 시퀀스를 만들겠다 이름이 question_num4 스타트를 1부터하고 증가값1로 주고 최대값을 500으로 줄거고 사이클은 안돌거야
+
+* 스프링 매퍼
+insert into QUESTION values
+	(QUESTION_NUM4.NEXTVAL,#{qtitle},#{qcontent},#{qkind, jdbcType=VARCHAR},sysdate,#{fk_seq})
+
+* 더미 데이터 집어넣기 (디비버)
+insert into mp_board(bno, title, content, writer)
+select mp_board_seq.nextval, title, content, writer from mp_board;
+
